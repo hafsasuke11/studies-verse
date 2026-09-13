@@ -68,7 +68,21 @@ app.use((err, req, res, next) => {
     res.status(500).json({ error: 'Something went wrong!' });
 });
 
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-    console.log(`🚀 Server running on http://localhost:${PORT}`);
-});
+const BASE_PORT = process.env.PORT || 5000;
+
+function startServer(port) {
+    const server = app.listen(port, () => {
+        console.log(`🚀 Server running on http://localhost:${port}`);
+    });
+
+    server.on('error', (err) => {
+        if (err.code === 'EADDRINUSE') {
+            console.log(`⚠️ Port ${port} busy, trying ${port + 1}...`);
+            startServer(port + 1);
+        } else {
+            console.error(err);
+        }
+    });
+}
+
+startServer(BASE_PORT);
